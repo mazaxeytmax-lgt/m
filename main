@@ -1,0 +1,198 @@
+--[[
+    MENU HITBOX & GELO INVERTIDO PRO (VERSIÓN FINAL)
+    Sistema de Minimizado con Bola Ninja y Funciones Verificadas.
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- CONFIGURACIÓN DE ESTADO
+local Config = {
+    GeloInvertido = false,
+    HitboxEnabled = false,
+    Size = 10,
+    Transparency = 0.6
+}
+
+-- CREACIÓN DE UI
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+screenGui.Name = "UltraMenuV3"
+screenGui.ResetOnSpawn = false
+
+-- PANEL PRINCIPAL
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.Size = UDim2.new(0, 240, 0, 320)
+mainFrame.Position = UDim2.new(0.5, -120, 0.4, -160)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Visible = true
+
+local mainCorner = Instance.new("UICorner", mainFrame)
+mainCorner.CornerRadius = UDim.new(0, 10)
+
+-- BOTÓN MINIMIZAR (-)
+local minimizeBtn = Instance.new("TextButton", mainFrame)
+minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+minimizeBtn.Position = UDim2.new(1, -35, 0, 5)
+minimizeBtn.BackgroundTransparency = 1
+minimizeBtn.Text = "-"
+minimizeBtn.TextColor3 = Color3.new(1, 1, 1)
+minimizeBtn.TextSize = 30
+minimizeBtn.Font = Enum.Font.GothamBold
+
+-- BOLA FLOTANTE (LOGO NINJA)
+local floatingBall = Instance.new("ImageButton", screenGui)
+floatingBall.Size = UDim2.new(0, 55, 0, 55)
+floatingBall.Position = UDim2.new(0.1, 0, 0.5, -27)
+floatingBall.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+floatingBall.Image = "rbxassetid://6031225818" -- Icono Ninja
+floatingBall.Visible = false
+floatingBall.Active = true
+floatingBall.Draggable = true
+
+local ballCorner = Instance.new("UICorner", floatingBall)
+ballCorner.CornerRadius = UDim.new(1, 0)
+local ballStroke = Instance.new("UIStroke", floatingBall)
+ballStroke.Color = Color3.fromRGB(200, 0, 0)
+ballStroke.Thickness = 2
+
+-- LÓGICA MINIMIZAR / ABRIR
+minimizeBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    floatingBall.Visible = true
+end)
+
+floatingBall.MouseButton1Click:Connect(function()
+    floatingBall.Visible = false
+    mainFrame.Visible = true
+end)
+
+-- TÍTULO DEL MENÚ
+local title = Instance.new("TextLabel", mainFrame)
+title.Size = UDim2.new(1, 0, 0, 45)
+title.Text = "MENU NINJA V2"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.BackgroundTransparency = 1
+title.TextSize = 16
+
+-- LÓGICA GELO INVERTIDO (VOLTEAR PARED)
+workspace.ChildAdded:Connect(function(obj)
+    if Config.GeloInvertido then
+        task.wait(0.05)
+        if obj:IsA("Model") or obj:IsA("BasePart") then
+            local name = obj.Name:lower()
+            if name:find("gelo") or name:find("wall") or name:find("ice") then
+                local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp and (obj:GetPivot().Position - hrp.Position).Magnitude < 20 then
+                    -- Rotamos el modelo 180 grados
+                    obj:PivotTo(obj:GetPivot() * CFrame.Angles(0, math.rad(180), 0))
+                end
+            end
+        end
+    end
+end)
+
+-- LÓGICA HITBOX (EXPANDIR ENEMIGOS)
+RunService.Heartbeat:Connect(function()
+    if Config.HitboxEnabled then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = v.Character.HumanoidRootPart
+                hrp.Size = Vector3.new(Config.Size, Config.Size, Config.Size)
+                hrp.Transparency = Config.Transparency
+                hrp.Color = Color3.fromRGB(200, 0, 0)
+                hrp.Material = Enum.Material.Neon
+                hrp.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- FUNCIÓN PARA CREAR BOTONES ON/OFF
+local function addToggle(text, y, configName)
+    local btn = Instance.new("TextButton", mainFrame)
+    btn.Size = UDim2.new(0.85, 0, 0, 40)
+    btn.Position = UDim2.new(0.075, 0, 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    btn.Text = text .. ": OFF"
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamSemibold
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    
+    btn.MouseButton1Click:Connect(function()
+        Config[configName] = not Config[configName]
+        btn.Text = text .. ": " .. (Config[configName] and "ON" or "OFF")
+        btn.BackgroundColor3 = Config[configName] and Color3.fromRGB(180, 0, 0) or Color3.fromRGB(30, 30, 30)
+        
+        -- Resetear hitboxes al apagar
+        if configName == "HitboxEnabled" and not Config.HitboxEnabled then
+            for _, v in pairs(Players:GetPlayers()) do
+                if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                    v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                    v.Character.HumanoidRootPart.Transparency = 1
+                end
+            end
+        end
+    end)
+end
+
+-- FUNCIÓN PARA CREAR SLIDERS (DESLIZADORES)
+local function addSlider(text, y)
+    local label = Instance.new("TextLabel", mainFrame)
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.Position = UDim2.new(0, 0, 0, y)
+    label.Text = text .. ": " .. Config.Size
+    label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.Small
+
+    local bg = Instance.new("Frame", mainFrame)
+    bg.Size = UDim2.new(0.8, 0, 0, 4)
+    bg.Position = UDim2.new(0.1, 0, 0, y + 25)
+    bg.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    bg.BorderSizePixel = 0
+
+    local fill = Instance.new("Frame", bg)
+    fill.Size = UDim2.new(0.4, 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    fill.BorderSizePixel = 0
+
+    local knob = Instance.new("TextButton", bg)
+    knob.Size = UDim2.new(0, 14, 0, 14)
+    knob.Position = UDim2.new(0.4, -7, 0.5, -7)
+    knob.Text = ""
+    knob.BackgroundColor3 = Color3.new(1, 1, 1)
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+    local isDragging = false
+    knob.MouseButton1Down:Connect(function() isDragging = true end)
+    
+    UserInputService.InputEnded:Connect(function(i) 
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then isDragging = false end 
+    end)
+
+    RunService.RenderStepped:Connect(function()
+        if isDragging then
+            local mPos = UserInputService:GetMouseLocation().X
+            local rel = math.clamp((mPos - bg.AbsolutePosition.X) / bg.AbsoluteSize.X, 0, 1)
+            Config.Size = math.floor(2 + (28 * rel))
+            fill.Size = UDim2.new(rel, 0, 1, 0)
+            knob.Position = UDim2.new(rel, -7, 0.5, -7)
+            label.Text = text .. ": " .. Config.Size
+        end
+    end)
+end
+
+-- INICIALIZACIÓN
+addToggle("GELO INVERTIDO", 60, "GeloInvertido")
+addToggle("HITBOX", 110, "HitboxEnabled")
+addSlider("LARGURA HITBOX", 175)
+addSlider("ALTURA HITBOX", 235)
+
+print("Script cargado correctamente.")
