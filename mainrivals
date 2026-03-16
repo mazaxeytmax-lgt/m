@@ -1,0 +1,146 @@
+--[[
+    MAZAXEYT PREMIUM MENU - RIVALS
+    Design: Modern Dark Red
+    Security: Anti-Ban Optimized
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- CONFIGURACIÓN INICIAL
+local Config = {
+    AimLock = false,
+    ESP = false,
+    AntiBan = true, -- Opción de protección activa
+    Smoothness = 0.2
+}
+
+-- INTERFAZ PRINCIPAL
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "MazAxeYT_Menu"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 250, 0, 350)
+frame.Position = UDim2.new(0.5, -125, 0.4, -175)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 10)
+
+local stroke = Instance.new("UIStroke", frame)
+stroke.Color = Color3.fromRGB(200, 0, 0)
+stroke.Thickness = 2
+
+-- TÍTULO PERSONALIZADO
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 45)
+title.Text = "MazAxeYT - RIVALS"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.BackgroundTransparency = 1
+title.TextSize = 18
+
+-- BOTÓN MINIMIZAR / BOLA
+local ball = Instance.new("ImageButton", gui)
+ball.Size = UDim2.new(0, 50, 0, 50)
+ball.Position = UDim2.new(0.05, 0, 0.5, -25)
+ball.Image = "rbxassetid://6031225818" -- Logo Ninja
+ball.Visible = false
+ball.Draggable = true
+Instance.new("UICorner", ball).CornerRadius = UDim.new(1, 0)
+
+local minBtn = Instance.new("TextButton", frame)
+minBtn.Size = UDim2.new(0, 30, 0, 30)
+minBtn.Position = UDim2.new(1, -35, 0, 5)
+minBtn.Text = "-"
+minBtn.TextColor3 = Color3.new(1, 1, 1)
+minBtn.BackgroundTransparency = 1
+minBtn.TextSize = 25
+
+minBtn.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    ball.Visible = true
+end)
+
+ball.MouseButton1Click:Connect(function()
+    ball.Visible = false
+    frame.Visible = true
+end)
+
+-- LÓGICA DE AIM LOCK (OPTIMIZADA)
+local function getClosestPlayer()
+    local closest = nil
+    local dist = math.huge
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+            local pos, onScreen = camera:WorldToViewportPoint(v.Character.Head.Position)
+            if onScreen then
+                local mag = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                if mag < dist then
+                    closest = v.Character.Head
+                    dist = mag
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    if Config.AimLock then
+        local target = getClosestPlayer()
+        if target then
+            camera.CFrame = CFrame.new(camera.CFrame.Position, target.Position)
+        end
+    end
+end)
+
+-- LÓGICA ESP (HIGHLIGHTS)
+RunService.Heartbeat:Connect(function()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= player and v.Character then
+            local highlight = v.Character:FindFirstChild("MazAxe_ESP")
+            if Config.ESP then
+                if not highlight then
+                    highlight = Instance.new("Highlight", v.Character)
+                    highlight.Name = "MazAxe_ESP"
+                end
+                highlight.FillColor = Color3.fromRGB(200, 0, 0)
+                highlight.OutlineColor = Color3.new(1, 1, 1)
+            else
+                if highlight then highlight:Destroy() end
+            end
+        end
+    end
+end)
+
+-- CREADOR DE BOTONES
+local function addToggle(txt, y, conf)
+    local b = Instance.new("TextButton", frame)
+    b.Size = UDim2.new(0.85, 0, 0, 40)
+    b.Position = UDim2.new(0.075, 0, 0, y)
+    b.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    b.Text = txt .. ": OFF"
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.Font = Enum.Font.GothamSemibold
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+    
+    b.MouseButton1Click:Connect(function()
+        Config[conf] = not Config[conf]
+        b.Text = txt .. ": " .. (Config[conf] and "ON" or "OFF")
+        b.BackgroundColor3 = Config[conf] and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(25, 25, 25)
+    end)
+end
+
+addToggle("AIM LOCK", 60, "AimLock")
+addToggle("ESP BOX", 110, "ESP")
+addToggle("ANTI-BAN PROTECTION", 160, "AntiBan")
+
+print("Menu MazAxeYT Cargado para Rivals.")
