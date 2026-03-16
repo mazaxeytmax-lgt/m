@@ -1,0 +1,16 @@
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+
+ScreenGui.Parent = game.CoreGui
+
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+Frame.Size = UDim2.new(0,200,0,250)
+Frame.Position = UDim2.new(0.4,0,0.3,0)
+
+local Title = Instance.new("TextLabel")
+Title.Parent = Frame
+Title.Text = "DELTA MENU"
+Title.Size = UDim2.new(1,0,0,40)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255,255,255)
