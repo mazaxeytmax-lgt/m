@@ -1,0 +1,94 @@
+--[[
+    MAZAXEYT PREMIUM - RIVALS & ESCAPE EDITION
+    Funciones: Hitbox Expander, ESP Box, Speed & Jump.
+    Diseño: Naranja con Pantalla de Inicio.
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+-- CONFIGURACIÓN DE FUNCIONES
+local Config = {
+    HitboxEnabled = false,
+    HitboxSize = 10,
+    ESPEnabled = false,
+    ESPColor = Color3.fromRGB(255, 140, 0)
+}
+
+-- INTERFAZ
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "MazAxeYT_V7"
+gui.ResetOnSpawn = false
+
+-- 1. PANTALLA DE LOADER (BOTÓN START)
+local loaderFrame = Instance.new("Frame", gui)
+loaderFrame.Size = UDim2.new(0, 280, 0, 180)
+loaderFrame.Position = UDim2.new(0.5, -140, 0.4, -90)
+loaderFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Instance.new("UICorner", loaderFrame)
+
+local loaderTitle = Instance.new("TextLabel", loaderFrame)
+loaderTitle.Size = UDim2.new(1, 0, 0, 50)
+loaderTitle.Text = "MAZAXE YT - LOADER"
+loaderTitle.TextColor3 = Color3.fromRGB(255, 120, 0)
+loaderTitle.Font = Enum.Font.GothamBold
+loaderTitle.TextSize = 20
+loaderTitle.BackgroundTransparency = 1
+
+local startBtn = Instance.new("TextButton", loaderFrame)
+startBtn.Size = UDim2.new(0.8, 0, 0, 45)
+startBtn.Position = UDim2.new(0.1, 0, 0.6, 0)
+startBtn.BackgroundColor3 = Color3.fromRGB(255, 120, 0)
+startBtn.Text = "START SCRIPT"
+startBtn.TextColor3 = Color3.new(1, 1, 1)
+startBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", startBtn)
+
+-- 2. MENÚ PRINCIPAL (NARANJA)
+local mainFrame = Instance.new("Frame", gui)
+mainFrame.Size = UDim2.new(0, 240, 0, 320)
+mainFrame.Position = UDim2.new(0.5, -120, 0.4, -160)
+mainFrame.BackgroundColor3 = Color3.fromRGB(255, 120, 0) -- Color Naranja
+mainFrame.Visible = false
+mainMenuActive = true
+mainFrame.Draggable = true
+Instance.new("UICorner", mainFrame)
+
+local menuTitle = Instance.new("TextLabel", mainFrame)
+menuTitle.Size = UDim2.new(1, 0, 0, 45)
+menuTitle.Text = "Para Mancos 😈 - MazAxe"
+menuTitle.TextColor3 = Color3.new(1, 1, 1)
+menuTitle.Font = Enum.Font.GothamBold
+menuTitle.BackgroundTransparency = 1
+menuTitle.TextSize = 16
+
+-- BOLA NINJA (MINIMIZAR)
+local ball = Instance.new("ImageButton", gui)
+ball.Size = UDim2.new(0, 50, 0, 50)
+ball.Position = UDim2.new(0.05, 0, 0.5, -25)
+ball.Image = "rbxassetid://6031225818"
+ball.Visible = false
+ball.Draggable = true
+Instance.new("UICorner", ball).CornerRadius = UDim.new(1, 0)
+
+-- LÓGICA DE VISIBILIDAD
+startBtn.MouseButton1Click:Connect(function()
+    loaderFrame.Visible = false
+    mainFrame.Visible = true
+end)
+
+local function toggleMenu()
+    mainFrame.Visible = not mainFrame.Visible
+    ball.Visible = not mainFrame.Visible
+end
+
+ball.MouseButton1Click:Connect(toggleMenu)
+
+-- LÓGICA HITBOX (EXPANDER)
+RunService.Heartbeat:Connect(function()
+    if Config.HitboxEnabled then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = v.Character.HumanoidRoot
