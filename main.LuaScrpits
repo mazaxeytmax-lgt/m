@@ -1,0 +1,150 @@
+--[[
+    MENU HITBOX & GELO INVERTIDO (VERIFICADO)
+    Asegúrate de ejecutarlo en un entorno que soporte scripts (Executor).
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- ESTADO GLOBAL
+local Config = {
+    GeloInvertido = false,
+    HitboxEnabled = false,
+    Size = 10,
+    Transparency = 0.6
+}
+
+-- CREACIÓN DE INTERFAZ
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "SmartMenu"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 240, 0, 300)
+frame.Position = UDim2.new(0.5, -120, 0.4, -150)
+frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+frame.Active = true
+frame.Draggable = true
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "HITBOX V2 - FUNCIONAL"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.BackgroundTransparency = 1
+
+-- FUNCIÓN HITBOX (Lógica de Verificación)
+local function ApplyHitbox()
+    if not Config.HitboxEnabled then return end
+    
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = v.Character.HumanoidRootPart
+            hrp.Size = Vector3.new(Config.Size, Config.Size, Config.Size)
+            hrp.Transparency = Config.Transparency
+            hrp.Color = Color3.fromRGB(255, 0, 0)
+            hrp.Material = Enum.Material.Neon
+            hrp.CanCollide = false
+        end
+    end
+end
+
+-- FUNCIÓN GELO INVERTIDO
+-- Esta función detecta cuando se añade un objeto al Workspace (común en juegos tipo Free Fire/Bedwars)
+workspace.DescendantAdded:Connect(function(obj)
+    if Config.GeloInvertido then
+        -- Ajusta "Gelo" o "Ice" al nombre del objeto de pared de tu juego
+        if obj.Name:lower():find("gelo") or obj.Name:lower():find("wall") then
+            task.wait() -- Esperar a que se posicione
+            if obj:IsA("Part") or obj:IsA("Model") then
+                local cf = obj:GetPivot()
+                obj:PivotTo(cf * CFrame.Angles(0, math.rad(180), 0))
+            end
+        end
+    end
+end)
+
+-- COMPONENTES DEL MENÚ
+local function createToggle(name, yPos, varName)
+    local btn = Instance.new("TextButton", frame)
+    btn.Size = UDim2.new(0.8, 0, 0, 35)
+    btn.Position = UDim2.new(0.1, 0, 0, yPos)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    btn.Text = name .. ": OFF"
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.Gotham
+    
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    
+    btn.MouseButton1Click:Connect(function()
+        Config[varName] = not Config[varName]
+        btn.Text = name .. ": " .. (Config[varName] and "ON" or "OFF")
+        btn.BackgroundColor3 = Config[varName] and Color3.fromRGB(180, 0, 0) or Color3.fromRGB(30, 30, 30)
+        
+        -- Si apagamos Hitbox, reseteamos a los jugadores
+        if varName == "HitboxEnabled" and not Config.HitboxEnabled then
+            for _, v in pairs(Players:GetPlayers()) do
+                if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                    v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                    v.Character.HumanoidRootPart.Transparency = 1
+                end
+            end
+        end
+    end)
+end
+
+local function createSlider(name, yPos)
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.Position = UDim2.new(0, 0, 0, yPos)
+    label.Text = name .. ": " .. Config.Size
+    label.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+    label.BackgroundTransparency = 1
+    
+    local slider = Instance.new("TextButton", frame)
+    slider.Size = UDim2.new(0.8, 0, 0, 10)
+    slider.Position = UDim2.new(0.1, 0, 0, yPos + 20)
+    slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    slider.Text = ""
+    
+    local fill = Instance.new("Frame", slider)
+    fill.Size = UDim2.new(0.5, 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+    fill.BorderSizePixel = 0
+
+    local dragging = false
+    
+    slider.MouseButton1Down:Connect(function() dragging = true end)
+    UserInputService.InputEnded:Connect(function(input) 
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end 
+    end)
+    
+    RunService.Heartbeat:Connect(function()
+        if dragging then
+            local percentage = math.clamp((mouse.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            Config.Size = math.floor(2 + (30 - 2) * percentage)
+            fill.Size = UDim2.new(percentage, 0, 1, 0)
+            label.Text = name .. ": " .. Config.Size
+        end
+    end)
+end
+
+-- Inicializar Botones
+createToggle("GELO INVERTIDO", 50, "GeloInvertido")
+createToggle("HITBOX", 100, "HitboxEnabled")
+createSlider("TAMAÑO HITBOX", 160)
+
+-- Bucle de ejecución (Heartbeat es más eficiente que RenderStepped para esto)
+RunService.Heartbeat:Connect(ApplyHitbox)
+
+-- Ocultar con la tecla "L"
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.L then
+        frame.Visible = not frame.Visible
+    end
+end)
