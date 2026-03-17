@@ -1,0 +1,96 @@
+--[[
+    MENU MAZAXEYT COM LOADER
+    - Tela Inicial: Start Script
+    - Menu Principal: Hitbox Expander
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- Configuração da Hitbox
+local Config = {
+    Enabled = false,
+    Size = 10
+}
+
+-- Criar a interface
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "MazAxeYT_Loader"
+
+-- 1. TELA DE START (Aparece ao executar)
+local startFrame = Instance.new("Frame", gui)
+startFrame.Size = UDim2.new(0, 300, 0, 180)
+startFrame.Position = UDim2.new(0.5, -150, 0.4, -90)
+startFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Instance.new("UICorner", startFrame)
+
+local startTitle = Instance.new("TextLabel", startFrame)
+startTitle.Size = UDim2.new(1, 0, 0, 50)
+startTitle.Text = "MAZAXE YT LOADER"
+startTitle.TextColor3 = Color3.fromRGB(255, 140, 0)
+startTitle.Font = Enum.Font.GothamBold
+startTitle.TextSize = 20
+startTitle.BackgroundTransparency = 1
+
+local startBtn = Instance.new("TextButton", startFrame)
+startBtn.Size = UDim2.new(0.8, 0, 0, 45)
+startBtn.Position = UDim2.new(0.1, 0, 0.6, 0)
+startBtn.BackgroundColor3 = Color3.fromRGB(255, 120, 0)
+startBtn.Text = "Start Script"
+startBtn.TextColor3 = Color3.new(1, 1, 1)
+startBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", startBtn)
+
+-- 2. MENU PRINCIPAL (Inicia oculto)
+local mainMenu = Instance.new("Frame", gui)
+mainMenu.Size = UDim2.new(0, 240, 0, 200)
+mainMenu.Position = UDim2.new(0.5, -120, 0.4, -100)
+mainMenu.BackgroundColor3 = Color3.fromRGB(255, 120, 0) -- Cor Laranja
+mainMenu.Visible = false
+mainMenu.Active = true
+mainMenu.Draggable = true
+Instance.new("UICorner", mainMenu)
+
+local menuTitle = Instance.new("TextLabel", mainMenu)
+menuTitle.Size = UDim2.new(1, 0, 0, 40)
+menuTitle.Text = "Para Mancos 😈"
+menuTitle.TextColor3 = Color3.new(1, 1, 1)
+menuTitle.Font = Enum.Font.GothamBold
+menuTitle.BackgroundTransparency = 1
+
+-- BOTÃO HITBOX
+local hitboxBtn = Instance.new("TextButton", mainMenu)
+hitboxBtn.Size = UDim2.new(0.9, 0, 0, 45)
+hitboxBtn.Position = UDim2.new(0.05, 0, 0, 60)
+hitboxBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+hitboxBtn.Text = "HITBOX AUMENTAR: OFF"
+hitboxBtn.TextColor3 = Color3.new(1, 1, 1)
+hitboxBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", hitboxBtn)
+
+-- LÓGICA DO BOTÃO START
+startBtn.MouseButton1Click:Connect(function()
+    startFrame.Visible = false
+    mainMenu.Visible = true
+end)
+
+-- LÓGICA DA HITBOX
+hitboxBtn.MouseButton1Click:Connect(function()
+    Config.Enabled = not Config.Enabled
+    hitboxBtn.Text = "HITBOX AUMENTAR: " .. (Config.Enabled and "ON" or "OFF")
+    hitboxBtn.TextColor3 = Config.Enabled and Color3.fromRGB(0, 255, 0) or Color3.new(1, 1, 1)
+end)
+
+RunService.RenderStepped:Connect(function()
+    if Config.Enabled then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = v.Character.HumanoidRootPart
+                hrp.Size = Vector3.new(Config.Size, Config.Size, Config.Size)
+                hrp.Transparency = 0.7
+                hrp.CanCollide = false
+            end
+        end
+    end
+end)
