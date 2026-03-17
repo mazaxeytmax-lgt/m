@@ -1,0 +1,45 @@
+--[[
+    MAZAXE YT - RAYFIELD UI
+    Interfaz Limpia Estilo Profesional
+]]
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "MAZAXE YT - MENÚ",
+   LoadingTitle = "Iniciando Interfaz...",
+   LoadingSubtitle = "Bienvenido",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "MazAxeConfig",
+      FileName = "CustomMenu"
+   },
+   KeySystem = false 
+})
+
+-- PESTAÑA PRINCIPAL
+local MainTab = Window:CreateTab("Inicio 🏠", 4483362458)
+
+MainTab:CreateSection("Bienvenida")
+
+MainTab:CreateLabel("Este es tu menú personalizado sin opciones de ventaja.")
+
+MainTab:CreateButton({
+   Name = "Cerrar Interfaz",
+   Callback = function()
+      Rayfield:Destroy()
+   end,
+})
+
+-- PESTAÑA DE INFORMACIÓN
+local InfoTab = Window:CreateTab("Info ℹ️", 4483345998)
+
+InfoTab:CreateSection("Estado del Script")
+InfoTab:CreateLabel("Versión: 1.0")
+InfoTab:CreateLabel("Usuario: " .. game.Players.LocalPlayer.Name)
+
+Rayfield:Notify({
+   Title = "Cargado",
+   Content = "Interfaz lista para usar",
+   Duration = 5,
+})
