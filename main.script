@@ -1,0 +1,97 @@
+--[[
+    MENÚ PREMIUM MAZAXEYT
+    - Sistema de Inicio (Play)
+    - Hitbox Expander (Cuerpo)
+    - ESP Box (Siluetas)
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- Configuración Base
+local Config = {
+    HitboxEnabled = false,
+    HitboxSize = 10,
+    ESPEnabled = false
+}
+
+-- Crear Interfaz Principal
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+screenGui.Name = "MazAxeYT_Ultimate"
+screenGui.ResetOnSpawn = false
+
+-- 1. PANTALLA DE BIENVENIDA (PLAY)
+local welcomeFrame = Instance.new("Frame", screenGui)
+welcomeFrame.Size = UDim2.new(0, 300, 0, 200)
+welcomeFrame.Position = UDim2.new(0.5, -150, 0.4, -100)
+welcomeFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+welcomeFrame.BorderSizePixel = 0
+
+local welcomeCorner = Instance.new("UICorner", welcomeFrame)
+welcomeCorner.CornerRadius = UDim.new(0, 15)
+
+local welcomeTitle = Instance.new("TextLabel", welcomeFrame)
+welcomeTitle.Size = UDim2.new(1, 0, 0, 80)
+welcomeTitle.Text = "Bienvenido"
+welcomeTitle.TextColor3 = Color3.new(1, 1, 1)
+welcomeTitle.Font = Enum.Font.GothamBold
+welcomeTitle.TextSize = 35
+welcomeTitle.BackgroundTransparency = 1
+
+local playBtn = Instance.new("TextButton", welcomeFrame)
+playBtn.Size = UDim2.new(0, 150, 0, 50)
+playBtn.Position = UDim2.new(0.5, -75, 0.6, 0)
+playBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+playBtn.Text = "PLAY"
+playBtn.TextColor3 = Color3.new(1, 1, 1)
+playBtn.Font = Enum.Font.GothamBold
+playBtn.TextSize = 25
+Instance.new("UICorner", playBtn)
+
+-- 2. MENÚ DE FUNCIONES (NARANJA)
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.Size = UDim2.new(0, 240, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -120, 0.4, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(255, 140, 0) -- Naranja vibrante
+mainFrame.Visible = false
+mainFrame.Active = true
+mainFrame.Draggable = true
+Instance.new("UICorner", mainFrame)
+
+local menuTitle = Instance.new("TextLabel", mainFrame)
+menuTitle.Size = UDim2.new(1, 0, 0, 40)
+menuTitle.Text = "Para mancos 😈"
+menuTitle.TextColor3 = Color3.new(1, 1, 1)
+menuTitle.Font = Enum.Font.GothamBold
+menuTitle.BackgroundTransparency = 1
+menuTitle.TextSize = 18
+
+-- Lógica del Botón PLAY
+playBtn.MouseButton1Click:Connect(function()
+    welcomeFrame.Visible = false
+    mainFrame.Visible = true
+end)
+
+-- FUNCIÓN HITBOX
+RunService.Heartbeat:Connect(function()
+    if Config.HitboxEnabled then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = v.Character.HumanoidRootPart
+                hrp.Size = Vector3.new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
+                hrp.Transparency = 0.7
+                hrp.Color = Color3.fromRGB(255, 255, 255)
+                hrp.Material = Enum.Material.ForceField
+                hrp.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- FUNCIÓN ESP BOX
+RunService.RenderStepped:Connect(function()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= player and v.Character then
+            local highlight = v.Character:FindFirstChild("
