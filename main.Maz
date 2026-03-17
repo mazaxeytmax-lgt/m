@@ -1,0 +1,93 @@
+--[[
+    MENU PREMIUM BLACK - MazAxeYT
+    Funciones: Hitbox (Slider max 20), NoClip, ESP.
+    Diseño: Negro con bordes rojos.
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+local Config = {
+    HitboxEnabled = false,
+    HitboxSize = 2,
+    NoClip = false,
+    ESP = false
+}
+
+-- INTERFAZ
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "MazAxeBlackMenu"
+
+-- 1. LOADER (PANTALLA DE INICIO)
+local loader = Instance.new("Frame", gui)
+loader.Size = UDim2.new(0, 260, 0, 160)
+loader.Position = UDim2.new(0.5, -130, 0.4, -80)
+loader.BackgroundColor3 = Color3.new(0,0,0)
+loader.BorderSizePixel = 2
+local lStroke = Instance.new("UIStroke", loader)
+lStroke.Color = Color3.new(1,0,0)
+
+local startBtn = Instance.new("TextButton", loader)
+startBtn.Size = UDim2.new(0.8, 0, 0, 45)
+startBtn.Position = UDim2.new(0.1, 0, 0.5, 0)
+startBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+startBtn.Text = "Start Script"
+startBtn.TextColor3 = Color3.new(1,1,1)
+startBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", startBtn)
+
+-- 2. MENÚ PRINCIPAL (NEGRO)
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 250, 0, 320)
+main.Position = UDim2.new(0.5, -125, 0.4, -160)
+main.BackgroundColor3 = Color3.new(0,0,0)
+main.Visible = false
+main.Active = true
+main.Draggable = true
+local mStroke = Instance.new("UIStroke", main)
+mStroke.Color = Color3.new(1,0,0)
+
+-- TÍTULO
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "MAZAXE YT BLACK"
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+
+-- LÓGICA DE START
+startBtn.MouseButton1Click:Connect(function()
+    loader.Visible = false
+    main.Visible = true
+end)
+
+-- FUNCIÓN NOCLIP
+RunService.Stepped:Connect(function()
+    if Config.NoClip then
+        for _, part in pairs(player.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+-- FUNCIÓN HITBOX (LIMITADA A 20)
+RunService.RenderStepped:Connect(function()
+    if Config.HitboxEnabled then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                v.Character.HumanoidRootPart.Size = Vector3.new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
+                v.Character.HumanoidRootPart.Transparency = 0.8
+                v.Character.HumanoidRootPart.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- UI: SLIDER HITBOX (BARRA)
+local sliderLabel = Instance.new("TextLabel", main)
+sliderLabel.Size = UDim2.new(1, 0, 0, 20)
+sliderLabel.Position = UDim2.new(0, 0, 0, 180)
+sliderLabel.Text = "Hitbox Size: " .. Config.HitboxSize
+sliderLabel.TextColor3
