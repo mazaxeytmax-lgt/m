@@ -1,0 +1,159 @@
+-- MAZAXE YT | GZSSF STYLE + ANTI-ROUND RESET + RAYOS DINAMICOS
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MazAxeFinalHub"
+ScreenGui.Parent = game:GetService("CoreGui")
+
+-- 1. SONIDOS Y MÚSICA
+local Music = Instance.new("Sound", game:GetService("SoundService"))
+Music.SoundId = "rbxassetid://1843404009"
+Music.Volume = 1.5
+Music:Play()
+
+local function PlayHackVoice()
+    local s = Instance.new("Sound", game:GetService("SoundService"))
+    s.SoundId = "rbxassetid://5565152865"
+    s.Volume = 2
+    s:Play()
+end
+
+-- 2. PANTALLA DE CARGA CON RAYOS DINÁMICOS
+local LoadingFrame = Instance.new("Frame", ScreenGui)
+LoadingFrame.Size = UDim2.new(1, 0, 1, 0)
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(2, 2, 5)
+
+local BarBack = Instance.new("Frame", LoadingFrame)
+BarBack.Size = UDim2.new(0, 600, 0, 15)
+BarBack.Position = UDim2.new(0.5, -300, 0.7, 0)
+BarBack.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+Instance.new("UICorner", BarBack)
+
+local Bar = Instance.new("Frame", BarBack)
+Bar.Size = UDim2.new(0, 0, 1, 0)
+Bar.BackgroundColor3 = Color3.fromRGB(0, 255, 220)
+Instance.new("UICorner", Bar)
+
+local Logo = Instance.new("TextLabel", LoadingFrame)
+Logo.Size = UDim2.new(0, 600, 0, 100)
+Logo.Position = UDim2.new(0.5, -300, 0.4, -50)
+Logo.Text = "MAZAXE YT"
+Logo.TextColor3 = Color3.fromRGB(0, 255, 220)
+Logo.Font = Enum.Font.GothamBold
+Logo.TextSize = 110
+Logo.BackgroundTransparency = 1
+
+-- ANIMACIÓN DE RAYOS (CAMBIAN A ROJO AL FINAL)
+spawn(function()
+    while LoadingFrame.Visible do
+        local Rayo = Instance.new("Frame", LoadingFrame)
+        Rayo.Size = UDim2.new(0, 2, 0, math.random(50, 150))
+        Rayo.Position = UDim2.new(math.random(0, 100)/100, 0, -0.2, 0)
+        -- Si la barra está avanzada, los rayos se vuelven rojos
+        Rayo.BackgroundColor3 = (Bar.Size.X.Scale > 0.8) and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 220)
+        Rayo.BorderSizePixel = 0
+        Rayo:TweenPosition(UDim2.new(Rayo.Position.X.Scale, 0, 1.2, 0), "Out", "Linear", math.random(1, 2))
+        game:GetService("Debris"):AddItem(Rayo, 2)
+        task.wait(0.08)
+    end
+end)
+
+-- 3. MENÚ PRINCIPAL Y CONTROLES
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 480, 0, 320)
+Main.Position = UDim2.new(0.3, 0, 0.3, 0)
+Main.BackgroundColor3 = Color3.fromRGB(15, 30, 30)
+Main.Visible = false
+Main.Active = true
+Main.Draggable = true
+Instance.new("UIStroke", Main).Color = Color3.fromRGB(0, 255, 220)
+Instance.new("UICorner", Main)
+
+local OpenBtn = Instance.new("TextButton", ScreenGui)
+OpenBtn.Size = UDim2.new(0, 50, 0, 50)
+OpenBtn.Position = UDim2.new(0.02, 0, 0.4, 0)
+OpenBtn.Text = "≡"
+OpenBtn.Visible = false
+OpenBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 220)
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
+
+-- 4. OPCIONES DE COMBATE (ANTI-RESET)
+local Content = Instance.new("ScrollingFrame", Main)
+Content.Position = UDim2.new(0, 10, 0, 50)
+Content.Size = UDim2.new(1, -20, 1, -60)
+Content.BackgroundTransparency = 1
+Instance.new("UIListLayout", Content).Padding = UDim.new(0, 10)
+
+local espEnabled = false
+local hitboxSize = 2
+
+local function AddOption(name, fn)
+    local b = Instance.new("TextButton", Content)
+    b.Size = UDim2.new(1, 0, 0, 45)
+    b.BackgroundColor3 = Color3.fromRGB(30, 60, 60)
+    b.Text = name
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(function() PlayHackVoice() fn() end)
+end
+
+-- LÓGICA DE CARGA
+for i = 0, 100, 1 do
+    Bar.Size = UDim2.new(i/100, 0, 1, 0)
+    task.wait(0.04)
+end
+Music:Stop()
+PlayHackVoice()
+LoadingFrame.Visible = false
+Main.Visible = true
+
+-- OPCIONES
+AddOption("ESP Infinito (Anti-Ronda)", function()
+    espEnabled = not espEnabled
+end)
+
+AddOption("Hitbox Expander (+5)", function()
+    hitboxSize = hitboxSize + 5
+end)
+
+AddOption("Spin 200 Speed", function()
+    local spinOn = true
+    game:GetService("RunService").Heartbeat:Connect(function()
+        local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if spinOn and hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(50), 0) end
+    end)
+end)
+
+-- BUCLE INFINITO PARA QUE NADA SE DESACTIVE
+game:GetService("RunService").RenderStepped:Connect(function()
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= game.Players.LocalPlayer and p.Character then
+            -- Re-activar ESP si se quita
+            if espEnabled and not p.Character:FindFirstChild("Highlight") then
+                Instance.new("Highlight", p.Character).FillColor = Color3.fromRGB(255, 0, 0)
+            end
+            -- Re-activar Hitbox si se quita o cambia ronda
+            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+            if hrp and hitboxSize > 2 then
+                hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                hrp.Transparency = 0.7
+                hrp.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- MINIMIZAR Y CERRAR
+local Close = Instance.new("TextButton", Main)
+Close.Size = UDim2.new(0, 30, 0, 30)
+Close.Position = UDim2.new(1, -35, 0, 5)
+Close.Text = "X"
+Close.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+Close.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+local Mini = Instance.new("TextButton", Main)
+Mini.Size = UDim2.new(0, 30, 0, 30)
+Mini.Position = UDim2.new(1, -70, 0, 5)
+Mini.Text = "-"
+Mini.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Mini.MouseButton1Click:Connect(function() Main.Visible = false OpenBtn.Visible = true end)
+
+OpenBtn.MouseButton1Click:Connect(function() Main.Visible = true OpenBtn.Visible = false end)
