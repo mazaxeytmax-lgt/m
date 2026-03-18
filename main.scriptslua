@@ -1,0 +1,139 @@
+-- [[ MazAxeYT V1 AntiPARCH - KEY SYSTEM EDITION ]] --
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+-- GENERADOR DE KEY ALEATORIA (Simulado para el ejemplo)
+local CorrectKey = "MAZ-" .. tostring(math.random(1000, 9999)) .. "-AXE"
+
+-- 1. INTERFAZ DE LOGUEO (KEY SYSTEM)
+local KeyGui = Instance.new("ScreenGui", CoreGui)
+local KeyFrame = Instance.new("Frame", KeyGui)
+KeyFrame.Size = UDim2.new(0, 300, 0, 200)
+KeyFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 15)
+
+local KeyTitle = Instance.new("TextLabel", KeyFrame)
+KeyTitle.Size = UDim2.new(1, 0, 0, 40)
+KeyTitle.Text = "SISTEMA DE SEGURIDAD"
+KeyTitle.TextColor3 = Color3.new(1, 1, 1)
+KeyTitle.Font = Enum.Font.GothamBold
+KeyTitle.BackgroundTransparency = 1
+
+local KeyInput = Instance.new("TextBox", KeyFrame)
+KeyInput.Size = UDim2.new(0.8, 0, 0, 40)
+KeyInput.Position = UDim2.new(0.1, 0, 0.3, 0)
+KeyInput.PlaceholderText = "Pega la Key aquí..."
+KeyInput.Text = ""
+KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+KeyInput.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", KeyInput)
+
+local GenBtn = Instance.new("TextButton", KeyFrame)
+GenBtn.Size = UDim2.new(0.4, 0, 0, 35)
+GenBtn.Position = UDim2.new(0.08, 0, 0.65, 0)
+GenBtn.Text = "Generar Key"
+GenBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+GenBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", GenBtn)
+
+local CheckBtn = Instance.new("TextButton", KeyFrame)
+CheckBtn.Size = UDim2.new(0.4, 0, 0, 35)
+CheckBtn.Position = UDim2.new(0.52, 0, 0.65, 0)
+CheckBtn.Text = "Entrar"
+CheckBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+CheckBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", CheckBtn)
+
+-- Lógica de la Key
+GenBtn.MouseButton1Click:Connect(function()
+    setclipboard(CorrectKey) -- Copia la key al portapapeles
+    GenBtn.Text = "¡Copiada!"
+    task.wait(2)
+    GenBtn.Text = "Generar Key"
+end)
+
+-- 2. MENÚ PRINCIPAL (SE ACTIVA AL PONER LA KEY)
+local function LoadMainHub()
+    KeyGui:Destroy()
+    
+    local MainGui = Instance.new("ScreenGui", CoreGui)
+    local MainFrame = Instance.new("Frame", MainGui)
+    MainFrame.Size = UDim2.new(0, 260, 0, 350)
+    MainFrame.Position = UDim2.new(0.5, -130, 0.4, -175)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+    
+    local Stroke = Instance.new("UIStroke", MainFrame)
+    Stroke.Color = Color3.fromRGB(255, 0, 0)
+    Stroke.Thickness = 2
+
+    local Title = Instance.new("TextLabel", MainFrame)
+    Title.Size = UDim2.new(1, 0, 0, 50)
+    Title.Text = "MAZAXEYT V1 ANTIPARCH"
+    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.Font = Enum.Font.GothamBold
+    Title.BackgroundTransparency = 1
+
+    local List = Instance.new("UIListLayout", MainFrame)
+    List.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    List.Padding = UDim.new(0, 10)
+
+    -- Variables Combate
+    local Combat = { Aim = false, Silent = false, ESP = false, Hitbox = false }
+
+    local function AddOpt(name, callback)
+        local b = Instance.new("TextButton", MainFrame)
+        b.Size = UDim2.new(0.9, 0, 0, 45)
+        b.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        b.Text = name
+        b.TextColor3 = Color3.new(1, 1, 1)
+        b.Font = Enum.Font.GothamBold
+        Instance.new("UICorner", b)
+        b.MouseButton1Click:Connect(callback)
+    end
+
+    -- BOTONES
+    AddOpt("🎯 AIMBOT PECHO (CERCANO)", function() Combat.Aim = not Combat.Aim end)
+    AddOpt("🏹 SILENT AIM DIRECTO", function() Combat.Silent = not Combat.Silent end)
+    AddOpt("📏 HITBOX GIGANTE", function() Combat.Hitbox = not Combat.Hitbox end)
+    AddOpt("👁️ ESP EQUIPOS", function() Combat.ESP = not Combat.ESP end)
+
+    -- Lógica del Aimbot al Pecho (Enemigo más cercano)
+    RunService.RenderStepped:Connect(function()
+        if Combat.Aim then
+            local target = nil
+            local dist = math.huge
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("UpperTorso") then
+                    -- Calcula distancia real entre personajes
+                    local d = (LocalPlayer.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
+                    if d < dist then
+                        dist = d
+                        target = p
+                    end
+                end
+            end
+            if target then
+                workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, target.Character.UpperTorso.Position)
+            end
+        end
+    end)
+    
+    -- (Aquí iría el resto de la lógica de ESP y Hitbox del mensaje anterior)
+end
+
+CheckBtn.MouseButton1Click:Connect(function()
+    if KeyInput.Text == CorrectKey then
+        LoadMainHub()
+    else
+        CheckBtn.Text = "¡Key Incorrecta!"
+        task.wait(1)
+        CheckBtn.Text = "Entrar"
+    end
+end)
