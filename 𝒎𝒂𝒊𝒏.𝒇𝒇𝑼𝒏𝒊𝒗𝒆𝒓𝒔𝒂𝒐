@@ -1,0 +1,86 @@
+-- [[ STARLUX X ALEJO | MINI-BAR EDITION ]]
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local LP = game.Players.LocalPlayer
+
+-- 1. BARRA DE MINIMIZADO (ESTILO IMAGEN SUPERIOR)
+local MiniBar = Instance.new("Frame", ScreenGui)
+MiniBar.Size = UDim2.new(0, 220, 0, 35)
+MiniBar.Position = UDim2.new(0.4, 0, 0.02, 0) -- Arriba al centro
+MiniBar.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
+MiniBar.Active = true; Mini.Draggable = true
+
+local MCorner = Instance.new("UICorner", MiniBar); MCorner.CornerRadius = UDim.new(0, 10)
+local MStroke = Instance.new("UIStroke", MiniBar); MStroke.Color = Color3.fromRGB(200, 0, 0); MStroke.Thickness = 1.5
+
+-- Logo redondo (izquierda)
+local Logo = Instance.new("ImageLabel", MiniBar)
+Logo.Size = UDim2.new(0, 25, 0, 25); Logo.Position = UDim2.new(0.05, 0, 0.15, 0)
+Logo.BackgroundColor3 = Color3.fromRGB(255, 0, 0); Logo.Image = "rbxassetid://6031225818" -- Icono genérico
+Instance.new("UICorner", Logo).CornerRadius = UDim.new(1, 0)
+
+-- Texto de la barra
+local MText = Instance.new("TextLabel", MiniBar)
+MText.Size = UDim2.new(1, -40, 1, 0); MText.Position = UDim2.new(0.2, 0, 0, 0)
+MText.Text = "STARLUX X ALEJO | FPS: 60"; MText.TextColor3 = Color3.fromRGB(255, 255, 255)
+MText.Font = "GothamBold"; MText.TextSize = 11; MText.BackgroundTransparency = 1; MText.TextXAlignment = "Left"
+
+local ClickBtn = Instance.new("TextButton", MiniBar)
+ClickBtn.Size = UDim2.new(1, 0, 1, 0); ClickBtn.BackgroundTransparency = 1; ClickBtn.Text = ""
+
+-- 2. MENU PRINCIPAL (STARLUX X ALEJO PANEL)
+local Main = Instance.new("Frame", ScreenGui)
+Main.BackgroundColor3 = Color3.fromRGB(5, 5, 10); Main.Size = UDim2.new(0, 480, 0, 280)
+Main.Position = UDim2.new(0.5, -240, 0.4, -140); Main.Visible = false
+Instance.new("UICorner", Main); Instance.new("UIStroke", Main).Color = Color3.fromRGB(0, 255, 255)
+
+-- LOGICA MINIMIZAR
+ClickBtn.MouseButton1Click:Connect(function()
+    Main.Visible = not Main.Visible
+end)
+
+-- 3. FUNCIONES (SILENT AIM & HOLOGRAMA)
+_G.Silent = false; _G.Holo = false
+
+task.spawn(function()
+    while task.wait(0.5) do
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= LP and p.Character then
+                -- Hitbox (Silent Aim)
+                local root = p.Character:FindFirstChild("HumanoidRootPart")
+                if root then root.Size = _G.Silent and Vector3.new(18,18,18) or Vector3.new(2,2,1); root.Transparency = 1 end
+                
+                -- Holograma Cyan (ESP)
+                local h = p.Character:FindFirstChild("AHolo")
+                if _G.Holo then
+                    if not h then 
+                        h = Instance.new("Highlight", p.Character); h.Name = "AHolo"
+                        h.FillColor = Color3.fromRGB(0,255,255); h.FillTransparency = 0.5
+                    end
+                elseif h then h:Destroy() end
+            end
+        end
+    end
+end)
+
+-- 4. PANELES Y BOTONES (REPLICA ALEJO)
+local Side = Instance.new("Frame", Main)
+Side.Size = UDim2.new(0, 110, 1, 0); Side.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+local Container = Instance.new("Frame", Main)
+Container.Position = UDim2.new(0, 120, 0, 40); Container.Size = UDim2.new(1, -130, 1, -50); Container.BackgroundTransparency = 1
+Instance.new("UIListLayout", Container).Padding = UDim.new(0, 10)
+
+local function AddSwitch(name, var)
+    local btn = Instance.new("TextButton", Container)
+    btn.Size = UDim2.new(1, 0, 0, 35); btn.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    btn.Text = "  " .. name; btn.TextColor3 = Color3.fromRGB(255, 255, 255); btn.Font = "Gotham"; btn.TextXAlignment = "Left"
+    btn.MouseButton1Click:Connect(function()
+        _G[var] = not _G[var]
+        btn.TextColor3 = _G[var] and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(255, 255, 255)
+    end)
+    Instance.new("UICorner", btn)
+end
+
+AddSwitch("Silent Aim (Hitbox)", "Silent")
+AddSwitch("Hologram Personajes", "Holo")
+
+print("STARLUX X ALEJO: Mini-Bar y Panel cargados correctamente.")
