@@ -1,0 +1,174 @@
+-- // CONFIGURACIÓN COMPLETA V9 | MAZAXEYT 19/03/2026
+_G.HitboxHead = false
+_G.ESP_Tracers = false
+_G.RainbowPanel = false
+_G.RainbowFOV = false
+_G.FOV_Size = 150
+_G.Key = "FFPanel"
+
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+
+-- // 1. CÍRCULO FOV RAINBOW
+local FOVCircle = Instance.new("Frame", ScreenGui)
+FOVCircle.Size = UDim2.new(0, _G.FOV_Size * 2, 0, _G.FOV_Size * 2)
+FOVCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+FOVCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
+FOVCircle.BackgroundTransparency = 1
+FOVCircle.Visible = false
+
+local FOVStroke = Instance.new("UIStroke", FOVCircle)
+FOVStroke.Thickness = 2
+FOVStroke.Color = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", FOVCircle).CornerRadius = UDim.new(1, 0)
+
+-- // 2. PANEL PRINCIPAL (CHEAT PRO V9)
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 400, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -200, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 2
+MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- PESTAÑAS
+local TabHolder = Instance.new("Frame", MainFrame)
+TabHolder.Size = UDim2.new(1, 0, 0, 40)
+TabHolder.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+
+local function CreateTab(name, pos)
+    local b = Instance.new("TextButton", TabHolder)
+    b.Size = UDim2.new(0, 133, 1, 0)
+    b.Position = UDim2.new(0, pos, 0, 0)
+    b.Text = name
+    b.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.BorderSizePixel = 0
+    b.Font = Enum.Font.GothamBold
+    return b
+end
+
+local T1, T2, T3 = CreateTab("AIMBOT", 0), CreateTab("ESP", 133), CreateTab("INFO", 266)
+
+local P1 = Instance.new("ScrollingFrame", MainFrame)
+P1.Size = UDim2.new(1, -20, 1, -100)
+P1.Position = UDim2.new(0, 10, 0, 50)
+P1.BackgroundTransparency = 1
+Instance.new("UIListLayout", P1).Padding = UDim.new(0, 10)
+
+local P2 = P1:Clone() P2.Parent = MainFrame P2.Visible = false
+local P3 = P1:Clone() P3.Parent = MainFrame P3.Visible = false
+
+-- // 3. LÓGICA RAINBOW GLOBAL
+local Open = Instance.new("TextButton", ScreenGui)
+Open.Size, Open.Position, Open.Text, Open.Visible = UDim2.new(0,60,0,60), UDim2.new(0.02,0,0.4,0), "V9", false
+Open.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+Instance.new("UICorner", Open).CornerRadius = UDim.new(1,0)
+
+RunService.RenderStepped:Connect(function()
+    local hue = tick() % 5 / 5
+    local color = Color3.fromHSV(hue, 1, 1)
+    
+    if _G.RainbowPanel then
+        MainFrame.BorderColor3 = color
+        Open.BackgroundColor3 = color
+        T1.TextColor3 = color T2.TextColor3 = color T3.TextColor3 = color
+    end
+    if _G.RainbowFOV then
+        FOVStroke.Color = color
+    end
+end)
+
+-- // 4. LÓGICA ESP TRACERS & BOXES (VERDES)
+local TracersFolder = Instance.new("Folder", ScreenGui)
+RunService.RenderStepped:Connect(function()
+    TracersFolder:ClearAllChildren()
+    if _G.ESP_Tracers then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local pos, onScreen = Camera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
+                if onScreen then
+                    local line = Instance.new("Frame", TracersFolder)
+                    line.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+                    line.Position = UDim2.new(0, pos.X, 0, pos.Y)
+                    line.Size = UDim2.new(0, 1, 0, (Camera.ViewportSize.Y - pos.Y))
+                    line.BorderSizePixel = 0
+                    local box = Instance.new("Frame", TracersFolder)
+                    box.BackgroundTransparency, box.BorderColor3, box.BorderSizePixel = 1, Color3.fromRGB(0, 255, 0), 2
+                    box.Position = UDim2.new(0, pos.X - 15, 0, pos.Y - 15)
+                    box.Size = UDim2.new(0, 30, 0, 30)
+                end
+            end
+        end
+    end
+end)
+
+-- // 5. BOTONES Y OPCIONES
+local function AddOption(name, parent, callback)
+    local f = Instance.new("Frame", parent)
+    f.Size = UDim2.new(1, 0, 0, 35)
+    f.BackgroundTransparency = 1
+    local btn = Instance.new("TextButton", f)
+    btn.Size = UDim2.new(0, 22, 0, 22)
+    btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    btn.Text = ""
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(1,0)
+    local l = Instance.new("TextLabel", f)
+    l.Position = UDim2.new(0, 35, 0, 0)
+    l.Size = UDim2.new(1, -35, 1, 0)
+    l.Text = name
+    l.TextColor3 = Color3.fromRGB(255,255,255)
+    l.BackgroundTransparency = 1
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        btn.BackgroundColor3 = active and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(60, 60, 60)
+        callback(active)
+    end)
+end
+
+AddOption("FOV Rainbow Circle", P1, function(v) _G.RainbowFOV = v FOVCircle.Visible = v end)
+AddOption("Hitbox Head 10 (Fix)", P1, function(v) _G.HitboxHead = v end)
+AddOption("ESP Tracers & Boxes", P2, function(v) _G.ESP_Tracers = v end)
+AddOption("PANEL RAINBOW", P3, function(v) _G.RainbowPanel = v end)
+
+-- HITBOX FIX
+task.spawn(function()
+    while task.wait(0.5) do
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                local h = plr.Character.Head
+                if _G.HitboxHead then h.Size, h.Transparency, h.CanCollide, h.Massless = Vector3.new(10,10,10), 1, false, true
+                else h.Size, h.CanCollide = Vector3.new(1.2,1.2,1.2), true end
+            end
+        end
+    end
+end)
+
+-- INTERFAZ (Tabs, Login, Minimize)
+T1.MouseButton1Click:Connect(function() P1.Visible, P2.Visible, P3.Visible = true, false, false end)
+T2.MouseButton1Click:Connect(function() P1.Visible, P2.Visible, P3.Visible = false, true, false end)
+T3.MouseButton1Click:Connect(function() P1.Visible, P2.Visible, P3.Visible = false, false, true end)
+
+local Mini = Instance.new("TextButton", MainFrame)
+Mini.Size, Mini.Position, Mini.Text = UDim2.new(0,30,0,30), UDim2.new(0.92,0,0.02,0), "-"
+Mini.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+Instance.new("UICorner", Mini).CornerRadius = UDim.new(1,0)
+Mini.MouseButton1Click:Connect(function() MainFrame.Visible, Open.Visible = false, true end)
+Open.MouseButton1Click:Connect(function() MainFrame.Visible, Open.Visible = true, false end)
+
+-- Login
+local KeySys = Instance.new("Frame", ScreenGui)
+KeySys.Size, KeySys.Position, KeySys.BackgroundColor3 = UDim2.new(0,280,0,160), UDim2.new(0.5,-140,0.4,0), Color3.fromRGB(20,20,20)
+local KIn = Instance.new("TextBox", KeySys)
+KIn.Size, KIn.Position, KIn.PlaceholderText = UDim2.new(0.8,0,0,35), UDim2.new(0.1,0,0.3,0), "Key: FFPanel"
+local KBtn = Instance.new("TextButton", KeySys)
+KBtn.Size, KIn.Position, KBtn.Text = UDim2.new(0.6,0,0,35), UDim2.new(0.2,0,0.7,0), "ENTRAR"
+KBtn.Position = UDim2.new(0.2,0,0.7,0)
+KBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
+KBtn.MouseButton1Click:Connect(function() if KIn.Text == "FFPanel" then KeySys:Destroy() MainFrame.Visible = true end end)
