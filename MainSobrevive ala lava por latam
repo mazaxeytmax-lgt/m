@@ -1,0 +1,154 @@
+-- MAZAXEYT SUPREME MENU (BORRA LAVA + AUTO-SPEED)
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TopBar = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local Container = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
+local UIStroke = Instance.new("UIStroke")
+local UICorner = Instance.new("UICorner")
+
+-- Configuración de Pantalla
+ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "MazAxeYT_Final_Speed"
+
+-- MARCO PRINCIPAL GIGANTE
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+MainFrame.Position = UDim2.new(0.5, -135, 0.2, 0) 
+MainFrame.Size = UDim2.new(0, 270, 0, 420)
+MainFrame.Active = true
+MainFrame.Draggable = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 15)
+
+UIStroke.Color = Color3.fromRGB(0, 255, 0)
+UIStroke.Thickness = 4
+UIStroke.Parent = MainFrame
+
+-- BARRA SUPERIOR
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.Size = UDim2.new(1, 0, 0, 60)
+TopBar.BackgroundTransparency = 1
+
+Title.Parent = TopBar
+Title.Size = UDim2.new(1, 0, 1, 0)
+Title.Text = "MAZAXEYT"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 22
+
+-- Botones de Control
+local function CreateControl(txt, pos, color, func)
+    local b = Instance.new("TextButton", TopBar)
+    b.Size = UDim2.new(0, 35, 0, 30)
+    b.Position = pos
+    b.BackgroundColor3 = color
+    b.Text = txt
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.Font = Enum.Font.SourceSansBold
+    Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(func)
+end
+
+CreateControl("X", UDim2.new(1, -45, 0, 15), Color3.fromRGB(200, 0, 0), function() ScreenGui:Destroy() end)
+local min = false
+CreateControl("-", UDim2.new(1, -90, 0, 15), Color3.fromRGB(60, 60, 60), function()
+    min = not min
+    Container.Visible = not min
+    MainFrame.Size = min and UDim2.new(0, 270, 0, 60) or UDim2.new(0, 270, 0, 420)
+end)
+
+-- CONTENEDOR DE BOTONES
+Container.Name = "Container"
+Container.Parent = MainFrame
+Container.Position = UDim2.new(0, 0, 0, 70)
+Container.Size = UDim2.new(1, 0, 1, -70)
+Container.BackgroundTransparency = 1
+
+UIListLayout.Parent = Container
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.Padding = UDim.new(0, 15)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Función Botón Toggle
+local function AddOption(name, func)
+    local btn = Instance.new("TextButton", Container)
+    btn.Size = UDim2.new(0.9, 0, 0, 55)
+    btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 18
+    Instance.new("UICorner", btn)
+
+    local act = false
+    btn.MouseButton1Click:Connect(function()
+        act = not act
+        btn.BackgroundColor3 = act and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(200, 0, 0)
+        func(act)
+    end)
+end
+
+-- --- OPCIONES ---
+
+-- 1. SPEED BOOSTER (CON AUTO-REAPARICIÓN)
+AddOption("Speed Booster", function(state)
+    _G.Spd = state
+    task.spawn(function()
+        while true do
+            if not _G.Spd then break end
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.WalkSpeed = 80
+            end
+            task.wait(0.5) -- Revisa cada medio segundo si reviviste para ponerte Speed
+        end
+        if game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+        end
+    end)
+end)
+
+-- 2. ANTI-LAVA / HAZARDS
+AddOption("Anti-Lava / Hazards", function(state)
+    _G.AntiLava = state
+    task.spawn(function()
+        while _G.AntiLava do
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("BasePart") and (v.Name:lower():find("lava") or v.Name:lower():find("water") or v.Name:lower():find("kill")) then
+                    v.CanTouch = false
+                end
+            end
+            task.wait(2)
+        end
+    end)
+end)
+
+-- 3. GOD MODE
+AddOption("God Mode", function(state)
+    _G.God = state
+    task.spawn(function()
+        while _G.God do
+            pcall(function() game.Players.LocalPlayer.Character.Humanoid.Health = 100 end)
+            task.wait(0.1)
+        end
+    end)
+end)
+
+-- 4. TP BASE
+AddOption("Tp Base", function(state)
+    if state then
+        local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.CFrame = CFrame.new(0, 20, 0) end
+    end
+end)
+
+-- 5. JUMP INFINITO
+AddOption("Infinite Jump", function(s)
+    _G.Jump = s
+    game:GetService("UserInputService").JumpRequest:Connect(function()
+        if _G.Jump then game.Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping") end
+    end)
+end)
