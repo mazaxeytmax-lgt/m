@@ -1,0 +1,134 @@
+-- MAZAXEYT MENU FINAL FIX
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
+local UIStroke = Instance.new("UIStroke")
+local UICorner = Instance.new("UICorner")
+local Title = Instance.new("TextLabel")
+
+-- Configuración Estética (Fiel a tu imagen)
+ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "MazAxeYT_Final"
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+MainFrame.Position = UDim2.new(0.5, -80, 0.4, 0)
+MainFrame.Size = UDim2.new(0, 160, 0, 300) -- Un poco más alto para el Speed
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+UIStroke.Color = Color3.fromRGB(0, 255, 0) -- Borde Verde Neón
+UIStroke.Thickness = 2
+UIStroke.Parent = MainFrame
+
+-- Botón Cerrar (X) y Minimizar (-)
+local function CreateControl(txt, pos, color, func)
+    local b = Instance.new("TextButton")
+    b.Parent = MainFrame
+    b.Size = UDim2.new(0, 25, 0, 20)
+    b.Position = pos
+    b.BackgroundColor3 = color
+    b.Text = txt
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.MouseButton1Click:Connect(func)
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 4)
+end
+
+CreateControl("X", UDim2.new(0.5, -12, 0, 5), Color3.fromRGB(200, 0, 0), function() ScreenGui:Destroy() end)
+CreateControl("-", UDim2.new(0.5, -12, 0, 28), Color3.fromRGB(50, 50, 50), function()
+    MainFrame.ClipsDescendants = true
+    MainFrame.Size = (MainFrame.Size.Y.Offset > 50) and UDim2.new(0, 160, 0, 50) or UDim2.new(0, 160, 0, 300)
+end)
+
+Title.Parent = MainFrame
+Title.Position = UDim2.new(0, 0, 0, 50)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Text = "MAZAXEYT"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 15
+
+UIListLayout.Parent = MainFrame
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.Padding = UDim.new(0, 8)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Función Toggle (Cambia a Verde)
+local function AddOption(name, func)
+    local btn = Instance.new("TextButton")
+    btn.Parent = MainFrame
+    btn.Size = UDim2.new(0.9, 0, 0, 38)
+    btn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 14
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        btn.BackgroundColor3 = active and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(180, 0, 0)
+        func(active)
+    end)
+end
+
+-- --- OPCIONES ACTUALIZADAS ---
+
+-- 1. SPEED BOOSTER (X que pediste)
+AddOption("Speed Booster", function(active)
+    _G.Speed = active
+    spawn(function()
+        while _G.Speed do
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 80 -- Velocidad God
+            wait(0.1)
+        end
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16 -- Velocidad Normal
+    end)
+end)
+
+-- 2. TP BASE (Detección Inteligente)
+AddOption("Tp Base", function(active)
+    if active then
+        local player = game.Players.LocalPlayer
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        -- Busca el Spawn real del juego
+        local spawnPos = workspace:FindFirstChildOfClass("SpawnLocation")
+        if hrp then
+            if spawnPos then
+                hrp.CFrame = spawnPos.CFrame + Vector3.new(0, 5, 0)
+            else
+                -- Coordenada de emergencia si no hay spawn
+                hrp.CFrame = CFrame.new(0, 100, 0) 
+            end
+        end
+    end
+end)
+
+-- 3. GOD MODE (Reforzado)
+AddOption("God Mode", function(state)
+    _G.God = state
+    spawn(function()
+        while _G.God do
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.Health = char.Humanoid.MaxHealth
+                if char:FindFirstChild("Health") then char.Health.Disabled = true end
+            end
+            wait(0.1)
+        end
+    end)
+end)
+
+-- 4. INFINITE JUMP
+AddOption("Infinite Jump", function(s)
+    _G.Jump = s
+    game:GetService("UserInputService").JumpRequest:Connect(function()
+        if _G.Jump then game.Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping") end
+    end)
+end)
