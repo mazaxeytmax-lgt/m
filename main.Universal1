@@ -1,0 +1,193 @@
+-- // MAZ CHEAT | ELITE EDITION - HITBOX UPDATE // --
+local Players = game:GetService("Players")
+local RS = game:GetService("RunService")
+local LP = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- // 1. SISTEMA DE KEY (MAZ HUB) // --
+local KeyGui = Instance.new("ScreenGui", game.CoreGui)
+local KeyFrame = Instance.new("Frame", KeyGui)
+KeyFrame.Size = UDim2.new(0, 320, 0, 180)
+KeyFrame.Position = UDim2.new(0.5, -160, 0.5, -90)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Instance.new("UICorner", KeyFrame)
+Instance.new("UIStroke", KeyFrame).Color = Color3.fromRGB(255, 100, 0)
+
+local KeyInput = Instance.new("TextBox", KeyFrame)
+KeyInput.Size = UDim2.new(0, 240, 0, 40)
+KeyInput.Position = UDim2.new(0.5, -120, 0.35, 0)
+KeyInput.PlaceholderText = "Pega la Key aquí..."
+KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+KeyInput.TextColor3 = Color3.new(1,1,1)
+
+local EnterBtn = Instance.new("TextButton", KeyFrame)
+EnterBtn.Size = UDim2.new(0, 110, 0, 40)
+EnterBtn.Position = UDim2.new(0.3, -55, 0.75, 0)
+EnterBtn.Text = "ENTRAR"
+EnterBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+
+local GenBtn = Instance.new("TextButton", KeyFrame)
+GenBtn.Size = UDim2.new(0, 110, 0, 40)
+GenBtn.Position = UDim2.new(0.7, -55, 0.75, 0)
+GenBtn.Text = "GENERAR KEY"
+GenBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+local GeneratedKey = tostring(math.random(100, 999)) .. "-MAZ-CHEATS"
+GenBtn.MouseButton1Click:Connect(function() setclipboard(GeneratedKey); GenBtn.Text = "COPIADA" end)
+
+-- // 2. MAZ CHEAT - MENÚ PRINCIPAL // --
+local function StartMazCheat()
+    KeyGui:Destroy()
+    print("Maz hub cargado")
+    
+    local MainGui = Instance.new("ScreenGui", game.CoreGui)
+    local MainFrame = Instance.new("Frame", MainGui)
+    local MinimizeBtn = Instance.new("TextButton", MainGui)
+
+    -- Variables de Control
+    _G.MasterSwitch = false -- "Activar Funciones"
+    _G.SilentAim = false
+    _G.TeamCheck = true
+    _G.ESPBox = false
+    _G.ESPLine = false
+    _G.Spinbot = false
+    _G.Speed = false
+    _G.HitboxExp = false
+    _G.HitboxSize = 2 -- Tamaño por defecto
+
+    -- Botón de Minimizar "Menú"
+    MinimizeBtn.Size = UDim2.new(0, 80, 0, 35)
+    MinimizeBtn.Position = UDim2.new(0.1, 0, 0.1, 0)
+    MinimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+    MinimizeBtn.Text = "Menú"
+    MinimizeBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", MinimizeBtn)
+    MinimizeBtn.Draggable = true
+    MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
+
+    -- Diseño Maz Cheat
+    MainFrame.Size = UDim2.new(0, 250, 0, 380)
+    MainFrame.Position = UDim2.new(0.5, -125, 0.5, -190)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(255, 100, 0)
+    Instance.new("UICorner", MainFrame)
+
+    local Container = Instance.new("ScrollingFrame", MainFrame)
+    Container.Size = UDim2.new(1, -20, 1, -20)
+    Container.Position = UDim2.new(0, 10, 0, 10)
+    Container.BackgroundTransparency = 1
+    Container.ScrollBarThickness = 0
+    Instance.new("UIListLayout", Container).Padding = UDim.new(0, 8)
+
+    -- Función Crear Botones
+    local function AddBtn(text, var)
+        local B = Instance.new("TextButton", Container)
+        B.Size = UDim2.new(1, 0, 0, 35)
+        B.Text = text .. ": OFF"
+        B.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        B.TextColor3 = Color3.new(1,1,1)
+        Instance.new("UICorner", B)
+        B.MouseButton1Click:Connect(function()
+            _G[var] = not _G[var]
+            B.Text = text .. (_G[var] and ": ON" or ": OFF")
+            B.TextColor3 = _G[var] and Color3.fromRGB(0, 255, 127) or Color3.new(1,1,1)
+        end)
+    end
+
+    -- // OPCIONES DEL MENÚ // --
+    AddBtn("ACTIVAR FUNCIONES", "MasterSwitch")
+    AddBtn("Silent Aim", "SilentAim")
+    AddBtn("Team Check", "TeamCheck")
+    AddBtn("ESP Box", "ESPBox")
+    AddBtn("ESP Line", "ESPLine")
+    AddBtn("Spinbot 40", "Spinbot")
+    AddBtn("Speed Hack (100)", "Speed")
+    AddBtn("Hitbox Expander", "HitboxExp")
+
+    -- Cuadro para elegir tamaño de Hitbox
+    local HitInput = Instance.new("TextBox", Container)
+    HitInput.Size = UDim2.new(1, 0, 0, 35)
+    HitInput.PlaceholderText = "Tamaño Hitbox (Ej: 10)"
+    HitInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    HitInput.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", HitInput)
+    HitInput.FocusLost:Connect(function()
+        _G.HitboxSize = tonumber(HitInput.Text) or 2
+    end)
+
+    -- // BUCLE DE EJECUCIÓN // --
+    RS.RenderStepped:Connect(function()
+        if not _G.MasterSwitch then return end -- SI NO ESTÁ ACTIVADO EL MASTER, NADA FUNCIONA
+
+        if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+            -- Speed Hack
+            LP.Character.Humanoid.WalkSpeed = _G.Speed and 100 or 16
+            
+            -- Spinbot 40
+            if _G.Spinbot then
+                LP.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(40), 0)
+            end
+
+            -- Hitbox & ESP Logic
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local isEnemy = not _G.TeamCheck or p.Team ~= LP.Team
+                    local Root = p.Character.HumanoidRootPart
+                    
+                    -- Hitbox Expander
+                    if _G.HitboxExp and isEnemy then
+                        Root.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                        Root.Transparency = 0.7
+                        Root.Color = Color3.new(1,1,1)
+                        Root.CanCollide = false
+                    else
+                        Root.Size = Vector3.new(2, 2, 1)
+                        Root.Transparency = 1
+                    end
+
+                    -- ESP Box
+                    local Box = Root:FindFirstChild("MazBox")
+                    if _G.ESPBox and isEnemy then
+                        if not Box then
+                            Box = Instance.new("BillboardGui", Root); Box.Name = "MazBox"; Box.AlwaysOnTop = true; Box.Size = UDim2.new(4,0,5.5,0)
+                            local f = Instance.new("Frame", Box); f.Size = UDim2.new(1,0,1,0); f.BackgroundTransparency = 1; Instance.new("UIStroke", f).Color = Color3.new(1,1,1)
+                        end
+                    elseif Box then Box:Destroy() end
+
+                    -- ESP Line
+                    local Line = Root:FindFirstChild("MazLine")
+                    if _G.ESPLine and isEnemy then
+                        if not Line then
+                            Line = Instance.new("Beam", Root); Line.Name = "MazLine"
+                            local a0 = Instance.new("Attachment", LP.Character.HumanoidRootPart); local a1 = Instance.new("Attachment", Root)
+                            Line.Attachment0 = a0; Line.Attachment1 = a1; Line.Width0 = 0.05; Line.Color = ColorSequence.new(Color3.new(1,1,1))
+                        end
+                    elseif Line then Line:Destroy() end
+                end
+            end
+
+            -- Silent Aim
+            if _G.SilentAim then
+                local target = nil; local dist = 250
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LP and p.Character and p.Character:FindFirstChild("Head") then
+                        if not _G.TeamCheck or p.Team ~= LP.Team then
+                            local pos, vis = Camera:WorldToViewportPoint(p.Character.Head.Position)
+                            if vis then
+                                local mag = (Vector2.new(pos.X, pos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+                                if mag < dist then dist = mag; target = p.Character.Head end
+                            end
+                        end
+                    end
+                end
+                if target then Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position) end
+            end
+        end
+    end)
+end
+
+EnterBtn.MouseButton1Click:Connect(function()
+    if KeyInput.Text == GeneratedKey then StartMazCheat() else KeyInput.PlaceholderText = "KEY INCORRECTA" end
+end)
