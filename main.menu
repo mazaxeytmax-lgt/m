@@ -1,0 +1,110 @@
+--[[ 
+    UNIVERSAL DARK NEON MENU
+    Funciones: Speed, Chams, Hitbox y Minimize
+]]
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local Container = Instance.new("ScrollingFrame")
+local UIListLayout = Instance.new("UIListLayout")
+
+-- Configuración de la interfaz
+ScreenGui.Name = "DarkNeonMenu"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(0, 255, 255) -- Color Neón
+MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
+MainFrame.Size = UDim2.new(0, 200, 0, 250)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Title.Text = "UNIVERSAL NEON"
+Title.TextColor3 = Color3.fromRGB(0, 255, 255)
+Title.TextSize = 18
+
+Container.Name = "Container"
+Container.Parent = MainFrame
+Container.BackgroundTransparency = 1
+Container.Position = UDim2.new(0, 5, 0, 35)
+Container.Size = UDim2.new(0, 190, 0, 210)
+Container.ScrollBarThickness = 2
+
+UIListLayout.Parent = Container
+UIListLayout.Padding = UDim.new(0, 5)
+
+-- Variables de estado
+local speedVal = 16
+local hitboxSize = 2
+
+-- Función para crear botones simples
+local function createButton(name, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -5, 0, 30)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Text = name
+    btn.Parent = Container
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- SPEED CONTROL
+createButton("Speed +", function()
+    speedVal = speedVal + 10
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speedVal
+end)
+
+createButton("Speed -", function()
+    speedVal = math.max(16, speedVal - 10)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speedVal
+end)
+
+-- HITBOX CONTROL
+createButton("Hitbox Expand", function()
+    hitboxSize = hitboxSize + 5
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+            v.Character.HumanoidRootPart.Transparency = 0.7
+            v.Character.HumanoidRootPart.BrickColor = BrickColor.new("Bright cyan")
+            v.Character.HumanoidRootPart.CanCollide = false
+        end
+    end
+end)
+
+-- CHAMS (Wallhack visual)
+createButton("Toggle Chams", function()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game.Players.LocalPlayer and v.Character then
+            if not v.Character:FindFirstChild("Highlight") then
+                local highlight = Instance.new("Highlight")
+                highlight.Parent = v.Character
+                highlight.FillColor = Color3.fromRGB(0, 255, 255)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            else
+                v.Character.Highlight:Destroy()
+            end
+        end
+    end
+end)
+
+-- MINIMIZE (Tecla Insert para ocultar/mostrar)
+local visible = true
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Insert then
+        visible = not visible
+        MainFrame.Visible = visible
+    end
+end)
+
+print("Menu Cargado. Presiona 'Insert' para minimizar.")
