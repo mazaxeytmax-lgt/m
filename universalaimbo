@@ -1,0 +1,198 @@
+-- // SERVICIOS
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+-- // CONFIGURACIÓN
+local Config = {
+    Aimbot = false,
+    ESP = false,
+    FOV_Visible = false,
+    FOV_Radius = 150,
+    Smoothness = 10 -- Valor por defecto (10 = Rápido, 100 = Muy suave)
+}
+
+-- // 1. INTERFAZ (UNIVERSAL By Mazscriptsroblox)
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 220, 0, 380)
+MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BorderSizePixel = 0
+
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Text = "UNIVERSAL By Mazscriptsroblox"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Title.TextSize = 13
+Title.Font = Enum.Font.SourceSansBold
+
+-- Función Draggable
+local function MakeDraggable(gui)
+    local dragging, dragInput, dragStart, startPos
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true dragStart = input.Position startPos = gui.Position
+        end
+    end)
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+    end)
+    RunService.RenderStepped:Connect(function()
+        if dragging and dragInput then
+            local delta = dragInput.Position - dragStart
+            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+MakeDraggable(MainFrame)
+
+-- BOLA "M"
+local OpenBtn = Instance.new("TextButton", ScreenGui)
+OpenBtn.Size = UDim2.new(0, 50, 0, 50)
+OpenBtn.Position = UDim2.new(0.02, 0, 0.45, 0)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(5, 5, 20)
+OpenBtn.Text = "M"
+OpenBtn.TextColor3 = Color3.fromRGB(0, 150, 255)
+OpenBtn.TextSize = 25
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
+MakeDraggable(OpenBtn)
+OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
+
+-- Botones principales
+local function CreateButton(txt, pos, key)
+    local btn = Instance.new("TextButton", MainFrame)
+    btn.Size = UDim2.new(0.9, 0, 0, 45)
+    btn.Position = pos
+    btn.Text = txt .. ": OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 16
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+
+    btn.MouseButton1Click:Connect(function()
+        Config[key] = not Config[key]
+        btn.Text = txt .. (Config[key] and ": ON" or ": OFF")
+        btn.BackgroundColor3 = Config[key] and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(35, 35, 35)
+    end)
+end
+
+CreateButton("AIMBOT", UDim2.new(0.05, 0, 0.15, 0), "Aimbot")
+CreateButton("ESP (3-IN-1)", UDim2.new(0.05, 0, 0.30, 0), "ESP")
+CreateButton("SHOW FOV", UDim2.new(0.05, 0, 0.45, 0), "FOV_Visible")
+
+-- // CUADRO DE SMOOTH (TEXTBOX)
+local SmoothLabel = Instance.new("TextLabel", MainFrame)
+SmoothLabel.Size = UDim2.new(0.5, 0, 0, 30)
+SmoothLabel.Position = UDim2.new(0.05, 0, 0.62, 0)
+SmoothLabel.Text = "SMOOTH (10-100):"
+SmoothLabel.TextColor3 = Color3.new(1,1,1)
+SmoothLabel.BackgroundTransparency = 1
+SmoothLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local SmoothInput = Instance.new("TextBox", MainFrame)
+SmoothInput.Size = UDim2.new(0.3, 0, 0, 30)
+SmoothInput.Position = UDim2.new(0.6, 0, 0.62, 0)
+SmoothInput.Text = tostring(Config.Smoothness)
+SmoothInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SmoothInput.TextColor3 = Color3.fromRGB(0, 255, 255)
+SmoothInput.Font = Enum.Font.SourceSansBold
+SmoothInput.TextSize = 18
+Instance.new("UICorner", SmoothInput)
+
+SmoothInput.FocusLost:Connect(function()
+    local val = tonumber(SmoothInput.Text)
+    if val then
+        Config.Smoothness = math.clamp(val, 1, 100)
+        SmoothInput.Text = tostring(Config.Smoothness)
+    else
+        SmoothInput.Text = tostring(Config.Smoothness)
+    end
+end)
+
+-- // 2. LÓGICA ESP (3-en-1 con Skeleton)
+local function GetSkeletonJoints(char)
+    local parts = {
+        {"Head", "UpperTorso"}, {"UpperTorso", "LowerTorso"},
+        {"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"},
+        {"UpperTorso", "RightUpperArm"}, {"RightUpperArm", "RightLowerArm"},
+        {"LowerTorso", "LeftUpperLeg"}, {"LeftUpperLeg", "LeftLowerLeg"},
+        {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}
+    }
+    return parts
+end
+
+local function CreateESP(p)
+    local Box = Drawing.new("Square")
+    Box.Filled, Box.Color, Box.Transparency = true, Color3.new(1, 1, 1), 0.3
+    local Tracer = Drawing.new("Line")
+    Tracer.Color = Color3.new(1, 1, 1)
+    
+    local skelLines = {}
+    for i=1, 10 do skelLines[i] = Drawing.new("Line") skelLines[i].Color = Color3.new(1,1,1) end
+
+    RunService.RenderStepped:Connect(function()
+        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") and Config.ESP and p ~= LocalPlayer then
+            local Root = p.Character.HumanoidRootPart
+            local Pos, On = Camera:WorldToViewportPoint(Root.Position)
+            if On then
+                Box.Visible = true
+                Box.Size = Vector2.new(1300/Pos.Z, 1800/Pos.Z)
+                Box.Position = Vector2.new(Pos.X - Box.Size.X/2, Pos.Y - Box.Size.Y/2)
+                Tracer.Visible, Tracer.From, Tracer.To = true, Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2), Vector2.new(Pos.X, Pos.Y)
+                
+                local joints = GetSkeletonJoints(p.Character)
+                for i, j in pairs(joints) do
+                    local p1, p2 = p.Character:FindFirstChild(j[1]), p.Character:FindFirstChild(j[2])
+                    if p1 and p2 then
+                        local v1, o1 = Camera:WorldToViewportPoint(p1.Position)
+                        local v2, o2 = Camera:WorldToViewportPoint(p2.Position)
+                        if o1 and o2 then
+                            skelLines[i].Visible, skelLines[i].From, skelLines[i].To = true, Vector2.new(v1.X, v1.Y), Vector2.new(v2.X, v2.Y)
+                        else skelLines[i].Visible = false end
+                    end
+                end
+            else 
+                Box.Visible, Tracer.Visible = false, false
+                for _,l in pairs(skelLines) do l.Visible = false end
+            end
+        else 
+            Box.Visible, Tracer.Visible = false, false
+            for _,l in pairs(skelLines) do l.Visible = false end
+        end
+    end)
+end
+
+for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
+Players.PlayerAdded:Connect(CreateESP)
+
+-- // 3. FOV Y AIMBOT
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Color, FOVCircle.Thickness, FOVCircle.Filled = Color3.new(1,1,1), 1.5, false
+
+RunService.RenderStepped:Connect(function()
+    FOVCircle.Visible, FOVCircle.Radius = Config.FOV_Visible, Config.FOV_Radius
+    FOVCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+
+    if Config.Aimbot then
+        local target, dist = nil, Config.FOV_Radius
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character.Humanoid.Health > 0 then
+                local P, On = Camera:WorldToViewportPoint(p.Character.Head.Position)
+                if On then
+                    local MDist = (Vector2.new(P.X, P.Y) - FOVCircle.Position).Magnitude
+                    if MDist < dist then dist = MDist target = p.Character.Head end
+                end
+            end
+        end
+        if target then
+            -- Lógica Smooth: Cuanto menor el número en el cuadro, más fuerte apunta
+            local lerpVal = 1 / (Config.Smoothness or 10)
+            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, target.Position), lerpVal)
+        end
+    end
+end)
