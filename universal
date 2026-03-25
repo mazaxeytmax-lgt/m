@@ -1,0 +1,153 @@
+-- // SERVICIOS
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+-- // CONFIGURACIÓN REFORZADA
+local Config = {
+    Aimbot = false,
+    ESP = false,
+    FOV_Visible = false,
+    FOV_Radius = 180, -- Radio más grande para mayor alcance
+    AimPart = "Head"  -- Objetivo: Cabeza
+}
+
+-- // 1. INTERFAZ (UNIVERSAL By Mazscriptsroblox)
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 220, 0, 280)
+MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BorderSizePixel = 0
+
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Text = "UNIVERSAL By Mazscriptsroblox"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Title.TextSize = 13
+Title.Font = Enum.Font.SourceSansBold
+
+-- Función Draggable
+local function MakeDraggable(gui)
+    local dragging, dragInput, dragStart, startPos
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true dragStart = input.Position startPos = gui.Position
+        end
+    end)
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    RunService.RenderStepped:Connect(function()
+        if dragging and dragInput then
+            local delta = dragInput.Position - dragStart
+            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+MakeDraggable(MainFrame)
+
+-- BOLA "M"
+local OpenBtn = Instance.new("TextButton", ScreenGui)
+OpenBtn.Size = UDim2.new(0, 50, 0, 50)
+OpenBtn.Position = UDim2.new(0.02, 0, 0.45, 0)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(5, 5, 20)
+OpenBtn.Text = "M"
+OpenBtn.TextColor3 = Color3.fromRGB(0, 150, 255)
+OpenBtn.TextSize = 25
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
+MakeDraggable(OpenBtn)
+OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
+
+local function CreateButton(txt, pos, key)
+    local btn = Instance.new("TextButton", MainFrame)
+    btn.Size = UDim2.new(0.9, 0, 0, 55)
+    btn.Position = pos
+    btn.Text = txt .. ": OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 18
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+
+    btn.MouseButton1Click:Connect(function()
+        Config[key] = not Config[key]
+        btn.Text = txt .. (Config[key] and ": ON" or ": OFF")
+        btn.BackgroundColor3 = Config[key] and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(35, 35, 35)
+    end)
+end
+
+CreateButton("AIMBOT", UDim2.new(0.05, 0, 0.22, 0), "Aimbot")
+CreateButton("ESP", UDim2.new(0.05, 0, 0.48, 0), "ESP")
+CreateButton("SHOW FOV", UDim2.new(0.05, 0, 0.74, 0), "FOV_Visible")
+
+-- // 2. LÓGICA FOV (Blanco y Vacío)
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Color = Color3.new(1, 1, 1)
+FOVCircle.Thickness = 1.5
+FOVCircle.Filled = false
+FOVCircle.Visible = false
+
+-- // 3. LÓGICA ESP (Bloque Blanco + Tracer)
+local function CreateESP(p)
+    local Box = Drawing.new("Square")
+    Box.Filled = true
+    Box.Color = Color3.new(1, 1, 1)
+    Box.Transparency = 0.4
+
+    local Tracer = Drawing.new("Line")
+    Tracer.Color = Color3.new(1, 1, 1)
+    Tracer.Thickness = 1
+    Tracer.Transparency = 0.6
+
+    RunService.RenderStepped:Connect(function()
+        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") and Config.ESP and p ~= LocalPlayer then
+            local Pos, OnScreen = Camera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
+            if OnScreen then
+                Box.Visible = true
+                Box.Size = Vector2.new(1300/Pos.Z, 1800/Pos.Z)
+                Box.Position = Vector2.new(Pos.X - Box.Size.X/2, Pos.Y - Box.Size.Y/2)
+                
+                Tracer.Visible = true
+                Tracer.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                Tracer.To = Vector2.new(Pos.X, Pos.Y)
+            else
+                Box.Visible = false Tracer.Visible = false
+            end
+        else
+            Box.Visible = false Tracer.Visible = false
+        end
+    end)
+end
+
+for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
+Players.PlayerAdded:Connect(CreateESP)
+
+-- // 4. LÓGICA DE CONTROL (AIMBOT INSTANTÁNEO)
+RunService.RenderStepped:Connect(function()
+    FOVCircle.Visible = Config.FOV_Visible
+    FOVCircle.Radius = Config.FOV_Radius
+    FOVCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+
+    if Config.Aimbot then
+        local target = nil
+        local dist = Config.FOV_Radius
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild(Config.AimPart) and p.Character.Humanoid.Health > 0 then
+                local P, On = Camera:WorldToViewportPoint(p.Character[Config.AimPart].Position)
+                if On then
+                    local MDist = (Vector2.new(P.X, P.Y) - FOVCircle.Position).Magnitude
+                    if MDist < dist then dist = MDist target = p.Character[Config.AimPart] end
+                end
+            end
+        end
+        if target then
+            -- CAMBIO CLAVE: Sin suavizado para que el bloqueo sea total (Lock-on)
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
+        end
+    end
+end)
